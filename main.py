@@ -2,7 +2,7 @@ from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from rag_module import build_graph
-
+import time
 # Create FastAPI application
 app = FastAPI()
 
@@ -32,8 +32,15 @@ def verify_api_key(x_api_key: str = Header(...)):
 # Define endpoint to receive question and return answer
 @app.post("/ask")
 def ask_question(data: QuestionRequest, api_key: str = Depends(verify_api_key)):
+    start_time = time.time()
     response = graph.invoke({"question": data.question})
-    return {"answer": response["answer"]}
+    end_time = time.time()
+    response_time = end_time - start_time
+    return {
+        "answer": response["answer"],
+        "response_time": round(response_time, 3)  
+    }
+
 
 # Basic route to test if API is running
 @app.get("/")
